@@ -151,6 +151,7 @@ BIND_TO_NEW_MESSAGE = [on_new_message]
 В состав проекта входит `src/starvellapi` — самописный async-клиент Starvell API. Его можно вытащить и юзать в своих скриптах независимо от бота: получение профиля, работа с офферами / заказами / чатами / отзывами / тикетами, плюс `Runner` для polling-событий и `OnlineKeeper` для статуса «онлайн».
 
 Ссылка: https://github.com/mooonfrog/starvellapi
+Документация: https://starvell.readthedocs.io/ru/latest/
 
 Лицензия совпадает с проектом — MIT, юзайте как хотите.
 
