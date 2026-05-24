@@ -56,12 +56,12 @@ def print_block(title: str, lines: Iterable[str], frame_color: str = BLUE) -> No
 
 
 def info_line(label: str, value: str, color: str = GREEN) -> str:
-    return f"{color}{label}:{RESET} {value}"
+    return f"{color}{label}:{RESET} [ {value} ]"
 
 
 def status_line(label: str, enabled: bool) -> str:
-    mark = f"{GREEN}ON{RESET}" if enabled else f"{RED}OFF{RESET}"
-    return f"{label}: [{mark}]"
+    mark = f"{GREEN}Включено{RESET}" if enabled else f"{RED}Выключено{RESET}"
+    return f"{label}: [ {mark} ]"
 
 
 def banner(title: str, subtitle: str | None = None, color: str = CYAN) -> None:
