@@ -150,72 +150,7 @@ BIND_TO_NEW_MESSAGE = [on_new_message]
 
 В состав проекта входит `src/starvellapi` — самописный async-клиент Starvell API. Его можно вытащить и юзать в своих скриптах независимо от бота: получение профиля, работа с офферами / заказами / чатами / отзывами / тикетами, плюс `Runner` для polling-событий и `OnlineKeeper` для статуса «онлайн».
 
-**Установка:** скопируй папку `src/starvellapi/` в свой проект и поставь зависимости: `httpx`, `certifi`, `websockets`.
-
-**Минимальный пример:**
-
-```python
-import asyncio
-from starvellapi import Account
-
-async def main():
-    async with Account(session_cookie="...") as acc:
-        me = await acc.get_profile()
-        print(me.user.username, me.user.id)
-
-        chats = await acc.get_chats(limit=10)
-        for chat in chats:
-            print(chat.id, chat.last_message.content if chat.last_message else "")
-
-        await acc.send_message(chats[0].id, "привет!")
-
-asyncio.run(main())
-```
-
-**Слушать события:**
-
-```python
-import asyncio
-from starvellapi import Account, Runner
-from starvellapi import NewMessageEvent, NewOrderEvent, NewReviewEvent
-
-async def main():
-    async with Account(session_cookie="...") as acc:
-        runner = Runner(acc, poll_interval=3.0)
-        async for event in runner.listen():
-            if isinstance(event, NewMessageEvent):
-                print("msg:", event.chat_id, event.message.content)
-            elif isinstance(event, NewOrderEvent):
-                print("order:", event.order.id, event.order.status)
-            elif isinstance(event, NewReviewEvent):
-                print("review:", event.review.rating, event.review.content)
-
-asyncio.run(main())
-```
-
-**Держать онлайн-статус (websocket):**
-
-```python
-from starvellapi import Account, OnlineKeeper
-
-async def main():
-    async with Account(session_cookie="...") as acc:
-        online = OnlineKeeper(acc)
-        await online.start()
-        try:
-            await asyncio.sleep(3600)
-        finally:
-            await online.stop()
-```
-
-Что доступно из `starvellapi`:
-
-- `Account` — HTTP-клиент: `get_profile`, `update_description`, `get_offers_by_category`, `update_offer`, `get_orders`, `refund_order`, `mark_order_completed`, `get_chats`, `get_chat_messages`, `send_typing`, `read_chat`, `send_message`, `get_reviews`, `create_review_response`, `update_review_response`, `delete_review_response`, `reply_ticket`, `close_ticket`.
-- `Runner` — long-polling событий: новые сообщения, заказы, смена статусов, отзывы. Опционально принимает `state_store` для персистентности.
-- `OnlineKeeper` — websocket-keepalive статуса «онлайн».
-- Типы: `User`, `Profile`, `Offer`, `Order`, `OrderDetails`, `Chat`, `ChatMessage`, `Review`, `ReviewResponse`, `TicketReply`, `SubCategory`.
-- Енумы: `OrderStatus`, `OrderUserType`, `OfferType`, `OfferSortBy`, `SortDirection`, `MessageType`, `EventType`.
-- Исключения: `StarvellAPIError`, `AuthExpiredError`, `TransientError`, `RequestFailedError`, `MessageNotDeliveredError`.
+Ссылка: https://github.com/mooonfrog/starvellapi
 
 Лицензия совпадает с проектом — MIT, юзайте как хотите.
 
