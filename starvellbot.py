@@ -12,7 +12,6 @@ from uuid import UUID
 ROOT = Path(__file__).resolve().parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
-
 from aiogram import Bot, Dispatcher
 
 from src.configs.config import Config
@@ -42,9 +41,7 @@ from src.utils.state_store import StateStore
 from src.utils.worker import Worker
 
 log = logging.getLogger("starvellbot")
-
 PLUGINS_DIR = ROOT / "plugins"
-
 HANDLER_BINDS: tuple[str, ...] = (
     "BIND_TO_PRE_INIT",
     "BIND_TO_POST_INIT",
@@ -58,7 +55,6 @@ HANDLER_BINDS: tuple[str, ...] = (
     "BIND_TO_NEW_REVIEW",
     "BIND_TO_COMMAND",
 )
-
 EVENT_TO_BIND: dict[type[BaseEvent], str] = {
     NewMessageEvent: "BIND_TO_NEW_MESSAGE",
     NewOrderEvent: "BIND_TO_NEW_ORDER",
@@ -103,7 +99,6 @@ class App:
         self.bot: Optional[Bot] = None
         self.dispatcher: Optional[Dispatcher] = None
         self.runner: Optional[Runner] = None
-
         self.plugins: dict[str, PluginData] = {}
         self._handlers: dict[str, list[tuple[str, Callable]]] = {
             name: [] for name in HANDLER_BINDS
@@ -113,15 +108,14 @@ class App:
         if not PLUGINS_DIR.exists():
             PLUGINS_DIR.mkdir(parents=True, exist_ok=True)
             log.info("создана папка %s", PLUGINS_DIR)
-
-        files = sorted(p for p in PLUGINS_DIR.glob("*.py") if not p.name.startswith("_"))
+        files = sorted(
+            (p for p in PLUGINS_DIR.glob("*.py") if not p.name.startswith("_"))
+        )
         if not files:
             log.info("плагинов нет, кидай .py в %s/", PLUGINS_DIR.name)
             return
-
         if str(PLUGINS_DIR.resolve()) not in sys.path:
             sys.path.append(str(PLUGINS_DIR.resolve()))
-
         loaded_lines: list[str] = []
         for file in files:
             if self._is_noplug(file):
@@ -132,7 +126,6 @@ class App:
                 log.exception("плагин %s не загрузился", file.name)
                 loaded_lines.append(f"{RED}[x]{RESET} {file.name}: {e}")
                 continue
-
             if not _is_uuid4(data.uuid):
                 loaded_lines.append(f"{RED}[x]{RESET} {file.name}: кривой UUID")
                 continue
@@ -142,14 +135,12 @@ class App:
                     f"{RED}[x]{RESET} {file.name}: UUID занят {existing.name}"
                 )
                 continue
-
             data.enabled = self.config.is_plugin_enabled(data.uuid)
             self.plugins[data.uuid] = data
             mark = f"{GREEN}[+]{RESET}" if data.enabled else f"{YELLOW}[-]{RESET}"
             loaded_lines.append(
                 f"{mark} {data.name} {CYAN}v{data.version}{RESET} - {data.credits}"
             )
-
         title = f"{CYAN}плагины:{RESET} {GREEN}{len(self.plugins)}{RESET} шт."
         log_block(log, logging.INFO, title, loaded_lines or ["нет валидных"])
 
@@ -170,11 +161,9 @@ class App:
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
-
         for required in ("NAME", "VERSION", "DESCRIPTION", "CREDITS", "UUID"):
             if not hasattr(module, required):
                 raise AttributeError(f"в {file.name} нет поля {required}")
-
         return PluginData(
             name=str(getattr(module, "NAME")),
             version=str(getattr(module, "VERSION")),
@@ -196,7 +185,7 @@ class App:
     async def call_handlers(self, name: str, *args: Any) -> None:
         for plugin_uuid, func in list(self._handlers[name]):
             plugin = self.plugins.get(plugin_uuid)
-            if plugin is not None and not plugin.enabled:
+            if plugin is not None and (not plugin.enabled):
                 continue
             try:
                 result = func(self, *args)
@@ -229,7 +218,7 @@ class App:
         await self.call_handlers(bind, event)
 
     def print_init_summary(self) -> None:
-        plugins_count = sum(1 for p in self.plugins.values() if p.enabled)
+        plugins_count = sum((1 for p in self.plugins.values() if p.enabled))
         plugins_total = len(self.plugins)
         my_id = self.worker.my_id if self.worker else "-"
         lines = [
@@ -242,7 +231,9 @@ class App:
             ),
             status_line("OnlineKeeper", self.config.online_keeper),
             status_line("Авто-чтение чатов", self.config.auto_read_chats),
-            status_line("Авто-благодарность", self.config.thanks_after_complete_enabled),
+            status_line(
+                "Авто-благодарность", self.config.thanks_after_complete_enabled
+            ),
             status_line("Watermark", self.config.watermark_enabled),
             status_line("Авто-ответ на отзывы", self.config.review_auto_reply_enabled),
             info_line(
@@ -257,21 +248,26 @@ class App:
             ),
         ]
         print("")
-        log_block(log, logging.INFO, f"{MAGENTA}Состояние:{RESET}", lines, frame_color=BLUE)
+        log_block(
+            log, logging.INFO, f"{MAGENTA}Состояние:{RESET}", lines, frame_color=BLUE
+        )
         print("")
 
     async def runner_loop(self, state_store: StateStore) -> None:
-        self.runner = Runner(self.account, poll_interval=3.0, state_store=state_store)
+        runner = Runner(self.account, state_store=state_store)
         try:
-            async for event in self.runner.listen():
-                await self.worker.process_event(event)
+            async for event in runner.listen():
+                try:
+                    await self.worker.process_event(event)
+                except Exception:
+                    log.exception("Worker error")
         except AuthExpiredError:
-            log.error("сессии плохо, обнови session_cookie в конфиге")
+            log.error("Session expired")
+            raise
         except asyncio.CancelledError:
-            pass
+            raise
         finally:
-            if self.runner is not None:
-                await self.runner.stop()
+            await runner.stop()
 
     async def telegram_loop(self) -> None:
         from src.tgbot.bot import build_bot, setup_bot_name, setup_commands
@@ -280,8 +276,9 @@ class App:
         if not self.config.telegram_bot_token:
             log.warning("telegram_bot_token пуст, тг-бот не поднимается")
             return
-
-        self.bot, self.dispatcher = build_bot(self.config, self.account, self.worker, self)
+        self.bot, self.dispatcher = build_bot(
+            self.config, self.account, self.worker, self
+        )
         await setup_bot_name(self.bot)
         await setup_commands(self.bot)
         notifier = TelegramNotifier(self.bot, self.config, self.worker)
