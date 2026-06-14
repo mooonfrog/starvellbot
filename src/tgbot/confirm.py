@@ -2,13 +2,11 @@ import asyncio
 import secrets
 import time
 from typing import Any
-
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
 _TTL = 60.0
 
-
 class ConfirmStore:
+
     def __init__(self) -> None:
         self._items: dict[str, tuple[float, dict[str, Any]]] = {}
         self._lock = asyncio.Lock()
@@ -34,13 +32,5 @@ class ConfirmStore:
         for k in expired:
             self._items.pop(k, None)
 
-
 def confirm_kb(token: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"cf:y:{token}"),
-                InlineKeyboardButton(text="❌ Отмена", callback_data=f"cf:n:{token}"),
-            ]
-        ]
-    )
+    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='✅ Подтвердить', callback_data=f'cf:y:{token}'), InlineKeyboardButton(text='🗑️ Отмена', callback_data=f'cf:n:{token}')]])

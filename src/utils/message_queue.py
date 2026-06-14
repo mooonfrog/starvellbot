@@ -2,24 +2,19 @@ import asyncio
 import logging
 from dataclasses import dataclass
 from typing import Awaitable, Callable, Optional
-
 from src.starvellapi.exceptions import StarvellAPIError
 from src.utils.rate_limiter import RateLimiter
-
-log = logging.getLogger("message_queue")
-
+log = logging.getLogger('message_queue')
 
 @dataclass
 class _Job:
     chat_id: str
     text: str
     future: asyncio.Future
-
-
 SendFn = Callable[[str, str], Awaitable[object]]
 
-
 class MessageQueue:
+
     def __init__(self, send_fn: SendFn, limiter: RateLimiter) -> None:
         self._send_fn = send_fn
         self._limiter = limiter
@@ -67,10 +62,10 @@ class MessageQueue:
                 if not job.future.done():
                     job.future.set_result(True)
             except StarvellAPIError as e:
-                log.warning("send в чат %s не прошёл: %s", job.chat_id, e)
+                log.warning('send в чат %s не прошёл: %s', job.chat_id, e)
                 if not job.future.done():
                     job.future.set_result(False)
             except Exception:
-                log.exception("send в чат %s упал", job.chat_id)
+                log.exception('send в чат %s упал', job.chat_id)
                 if not job.future.done():
                     job.future.set_result(False)

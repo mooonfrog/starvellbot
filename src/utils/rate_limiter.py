@@ -2,11 +2,11 @@ import asyncio
 import collections
 import time
 
-
 class RateLimiter:
-    def __init__(self, max_calls: int, period: float = 60.0) -> None:
+
+    def __init__(self, max_calls: int, period: float=60.0) -> None:
         if max_calls <= 0:
-            raise ValueError("max_calls должен быть > 0")
+            raise ValueError('max_calls должен быть > 0')
         self._max_calls: int = int(max_calls)
         self._period: float = float(period)
         self._calls: collections.deque[float] = collections.deque()
