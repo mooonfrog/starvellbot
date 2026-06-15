@@ -85,6 +85,12 @@ async def _telegram_task(app: App, tg_handler: TelegramLogHandler) -> None:
         if app.bot is not None:
             tg_handler.attach(app.bot, app.config.authorized_telegram_users, asyncio.get_running_loop())
             log.info('tg-логгер запущен')
+            if not app.config.ddg5:
+                for user_id in app.config.authorized_telegram_users:
+                    try:
+                        await app.bot.send_message(user_id, '⚠️ Бот обновлён. Для работы требуется Cookie <b>__ddg5_</b>.\n\nПожалуйста, пришлите её значение в ответ на это сообщение.', parse_mode='HTML')
+                    except Exception:
+                        pass
     asyncio.create_task(_ready())
     try:
         await app.telegram_loop()
@@ -101,7 +107,20 @@ async def _main_async(tg_handler: TelegramLogHandler) -> None:
     app.register_handlers()
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     state_store = StateStore(DATA_DIR / 'state.json')
-    account = Account(session_cookie=config.session_cookie, proxy=config.proxy, user_agent=config.user_agent)
+
+    if not config.ddg5:
+        log.warning('__ddg5_ cookie отсутствует. Бот запущен в режиме ожидания настройки в Telegram.')
+        telegram_task = asyncio.create_task(_telegram_task(app, tg_handler))
+        try:
+            await asyncio.gather(telegram_task)
+        except asyncio.CancelledError:
+            pass
+        finally:
+            telegram_task.cancel()
+            tg_handler.stop()
+        return
+
+    account = Account(session_cookie=config.session_cookie, proxy=config.proxy, user_agent=config.user_agent, ddg5=config.ddg5)
     app.account = account
     async with account:
         worker = Worker(account, config)

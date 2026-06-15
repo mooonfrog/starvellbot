@@ -24,6 +24,26 @@ log = logging.getLogger('telegrambot.handlers')
 router = Router()
 LOG_FILE = Path('logs/log.log')
 
+@router.message(F.text, lambda m: not Config.load().ddg5 and not m.text.startswith('/'))
+async def prompt_ddg(message: Message, config: Config) -> None:
+    if not config.is_authorized(message.from_user.id):
+        return
+    text = (message.text or '').strip()
+    if len(text) > 5 and ' ' not in text:
+        config.ddg5 = text
+        config.save()
+        await message.answer('✅ Cookie <b>__ddg5_</b> сохранена! Теперь нажми /restart для полного запуска бота.', parse_mode=ParseMode.HTML)
+        return
+    await message.answer('⚠️ Бот не запущен, так как отсутствует Cookie <code>__ddg5_</code> (DDoS-Guard bypass).\n\nПожалуйста, <b>пришлите значение этой Cookie</b> следующим сообщением.\n\n<i>Где взять: в браузере (F12 -> Application -> Cookies) после авторизации на starvell.com.</i>', parse_mode=ParseMode.HTML)
+
+@router.callback_query(lambda c: not Config.load().ddg5 and not c.data.startswith('cf:'))
+async def prompt_ddg_callback(call: CallbackQuery, config: Config) -> None:
+    if not config.is_authorized(call.from_user.id):
+        await call.answer('Нет доступа', show_alert=True)
+        return
+    await call.answer('⚠️ Бот ожидает настройки Cookie __ddg5_. Пришлите её в чат.', show_alert=True)
+    await call.message.answer('⚠️ Бот ожидает настройки Cookie <code>__ddg5_</code>.\n\nПожалуйста, <b>пришлите значение этой Cookie</b> сообщением.', parse_mode=ParseMode.HTML)
+
 async def _safe_edit(call: CallbackQuery, text: str, markup) -> None:
     try:
         await call.message.edit_text(text, reply_markup=markup)

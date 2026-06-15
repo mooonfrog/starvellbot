@@ -45,6 +45,7 @@ def run_setup_wizard(directory: Path) -> Config:
     cfg = load_config(directory)
     _print_section('Starvell аккаунт', KAOMOJI_LOVE)
     cfg.session_cookie = _ask('Сессия (session) куки с starvell.com', kao=KAOMOJI_HAPPY)
+    cfg.ddg5 = _ask('Cookie __ddg5_ (DDoS-Guard bypass)', kao=KAOMOJI_HAPPY)
     proxy = _ask('Прокси (формат http://user:pass@host:port)', kao=KAOMOJI_HAPPY, optional=True)
     cfg.proxy = proxy or None
     _print_section('Telegram', KAOMOJI_TADA)

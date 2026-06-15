@@ -10,13 +10,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 log = logging.getLogger('config')
-DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
+DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
 CONFIG_DIR = Path('configs')
 FILE_MAIN = CONFIG_DIR / '_main.cfg'
 FILE_TG = CONFIG_DIR / '_tg.cfg'
 FILE_SETTINGS = CONFIG_DIR / '_settings.cfg'
 DEFAULT_WATERMARK_TEXT = '[ 🌟 sᴛᴀʀᴠᴇʟʟʙᴏᴛ ]'
-_LAYOUT: dict[Path, dict[str, list[tuple[str, str]]]] = {FILE_MAIN: {'Account': [('session_cookie', 'str'), ('user_agent', 'str'), ('online_keeper', 'bool')], 'Offers': [('autobump_enabled', 'bool'), ('autobump_interval', 'int'), ('autobump_list', 'json')], 'Network': [('proxy', 'str_optional')]}, FILE_TG: {'Bot': [('telegram_bot_token', 'str')], 'Auth': [('telegram_password_hash', 'json'), ('telegram_password_attempts', 'json'), ('telegram_password_max_attempts', 'int'), ('telegram_password_ban_minutes', 'int'), ('authorized_telegram_users', 'json')]}, FILE_SETTINGS: {'General': [('timezone', 'str'), ('auto_read_chats', 'bool')], 'Blacklist': [('blacklist_usernames', 'json')], 'Triggers': [('triggers', 'json')], 'Commands': [('commands', 'json')], 'QuickReplies': [('quick_replies', 'json')], 'Notifications': [('notify_messages', 'bool'), ('notify_orders', 'bool'), ('notify_reviews', 'bool'), ('notify_commands', 'bool')], 'Reviews': [('review_auto_reply_enabled', 'bool'), ('review_replies', 'json'), ('disabled_reviews', 'json')], 'Thanks': [('thanks_after_complete_enabled', 'bool'), ('thanks_text', 'str')], 'Greeting': [('greeting_enabled', 'bool'), ('greeting_text', 'str'), ('greeted_chat_ids', 'json')], 'RateLimit': [('send_message_rate_per_minute', 'int')], 'Watermark': [('watermark_enabled', 'bool'), ('watermark_text', 'str')], 'Plugins': [('disabled_plugins', 'json')]}}
+_LAYOUT: dict[Path, dict[str, list[tuple[str, str]]]] = {FILE_MAIN: {'Account': [('session_cookie', 'str'), ('user_agent', 'str'), ('ddg5', 'str'), ('online_keeper', 'bool')], 'Offers': [('autobump_enabled', 'bool'), ('autobump_interval', 'int'), ('autobump_list', 'json')], 'Network': [('proxy', 'str_optional')]}, FILE_TG: {'Bot': [('telegram_bot_token', 'str')], 'Auth': [('telegram_password_hash', 'json'), ('telegram_password_attempts', 'json'), ('telegram_password_max_attempts', 'int'), ('telegram_password_ban_minutes', 'int'), ('authorized_telegram_users', 'json')]}, FILE_SETTINGS: {'General': [('timezone', 'str'), ('auto_read_chats', 'bool')], 'Blacklist': [('blacklist_usernames', 'json')], 'Triggers': [('triggers', 'json')], 'Commands': [('commands', 'json')], 'QuickReplies': [('quick_replies', 'json')], 'Notifications': [('notify_messages', 'bool'), ('notify_orders', 'bool'), ('notify_reviews', 'bool'), ('notify_commands', 'bool')], 'Reviews': [('review_auto_reply_enabled', 'bool'), ('review_replies', 'json'), ('disabled_reviews', 'json')], 'Thanks': [('thanks_after_complete_enabled', 'bool'), ('thanks_text', 'str')], 'Greeting': [('greeting_enabled', 'bool'), ('greeting_text', 'str'), ('greeted_chat_ids', 'json')], 'RateLimit': [('send_message_rate_per_minute', 'int')], 'Watermark': [('watermark_enabled', 'bool'), ('watermark_text', 'str')], 'Plugins': [('disabled_plugins', 'json')]}}
 
 def _hash_password(password: str, salt: Optional[str]=None) -> dict:
     if not password:
@@ -75,6 +75,7 @@ class Config:
     session_cookie: str = ''
     proxy: Optional[str] = None
     user_agent: str = DEFAULT_USER_AGENT
+    ddg5: str = ''
     online_keeper: bool = True
     telegram_bot_token: str = ''
     telegram_password_hash: dict = field(default_factory=dict)

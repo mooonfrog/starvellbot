@@ -281,8 +281,9 @@ class App:
         )
         await setup_bot_name(self.bot)
         await setup_commands(self.bot)
-        notifier = TelegramNotifier(self.bot, self.config, self.worker)
-        self.worker.add_listener(notifier)
+        if self.worker:
+            notifier = TelegramNotifier(self.bot, self.config, self.worker)
+            self.worker.add_listener(notifier)
         try:
             await self.dispatcher.start_polling(self.bot, handle_signals=False)
         finally:
